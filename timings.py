@@ -44,6 +44,9 @@ results = []
 # URL to test
 url = args.url
 
+# Progress tracking
+completed_requests = 0
+
 def header_function(header_line, headers):
     """Parse header line and add to headers dictionary"""
     header_line = header_line.decode('iso-8859-1')
@@ -59,7 +62,7 @@ def header_function(header_line, headers):
 
 def perform_request(request_id):
     """Function to perform a single request and measure performance metrics"""
-    global reused_conns_count, reused_conns_download_times, new_conns_download_times
+    global reused_conns_count, reused_conns_download_times, new_conns_download_times, completed_requests
     
     # Initialize buffer and headers dictionary for this request
     buffer = BytesIO()
@@ -130,9 +133,20 @@ def perform_request(request_id):
               appconnect_time, starttransfer_time, upstream_connect_time, 
               origin_fbl, cf_fbl, download_speed, page_size_kb]
     
-    # Thread-safe addition to results list
+    # Thread-safe addition to results list and update progress
     with result_lock:
         results.append(result)
+        global completed_requests
+        completed_requests += 1
+        # Show progress
+        progress = (completed_requests / requests_total) * 100
+        bar_length = 30
+        filled_length = int(bar_length * completed_requests // requests_total)
+        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+
+        # Use carriage return to update the same line
+        sys.stdout.write(f"\rProgress: [{bar}] {completed_requests}/{requests_total} requests ({progress:.1f}%)")
+        sys.stdout.flush()
     
     # Clean up
     c.close()
@@ -147,6 +161,10 @@ start_time = time.time()
 with ThreadPoolExecutor(max_workers=concurrency) as executor:
     # Submit all requests to the executor
     future_to_id = {executor.submit(perform_request, i): i for i in range(requests_total)}
+
+# Move to a new line after progress bar
+if not args.verbose:
+    print("\n")
 
 # Calculate total execution time
 total_execution_time = time.time() - start_time
