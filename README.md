@@ -7,6 +7,16 @@ The script uses [Pycurl](http://pycurl.io/) module and utilizes Curl [write-out]
 **Note**
 If you don't want to install Pycurl on your local machine, see below how you can run the script using AWS CloudShell
 
+## Installation
+
+To install the required dependencies locally:
+
+```
+pip install -r requirements.txt
+```
+
+This will install pycurl and tabulate packages.
+
 The following metrics are captured by curl and printed out:
 - TOTAL_TIME: the total time in seconds for the previous transfer, including name resolving, TCP connect etc. 
 - NAMELOOKUP_TIME: the total time in seconds from the start until the name resolving was completed.
@@ -94,7 +104,9 @@ To run the script from the Cloud perform the following steps:
 - Install the following modules:
 ```
 sudo yum install python3-pycurl.x86_64
-pip3 install tabulate
+pip3 install -r requirements.txt  # If you uploaded the requirements.txt file
+# Or install individually:
+# pip3 install tabulate
 ```
 - Select Actions -> Upload file and upload timings.py script
 - Run script
